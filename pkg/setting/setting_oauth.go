@@ -1,5 +1,10 @@
 package setting
 
+type OAuthOrgInfo struct {
+	Role  string
+	OrgId int64
+}
+
 type OAuthInfo struct {
 	ClientId, ClientSecret       string
 	Scopes                       []string
@@ -18,6 +23,7 @@ type OAuthInfo struct {
 	TlsClientCa                  string
 	TlsSkipVerify                bool
 	SendClientCredentialsViaPost bool
+	ConfigFile                   string
 }
 
 type OAuther struct {
