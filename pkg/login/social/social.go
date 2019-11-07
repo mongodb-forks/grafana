@@ -115,6 +115,8 @@ func NewOAuthService() {
 
 		logger := log.New("oauth." + name)
 
+		logger.Debug("Scopes", config.Scopes)
+
 		// GitHub.
 		if name == "github" {
 			SocialMap["github"] = &SocialGithub{

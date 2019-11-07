@@ -10,7 +10,7 @@ import (
 	"regexp"
 
 	"github.com/grafana/grafana/pkg/models"
-	"github.com/jmespath/go-jmespath"
+	jmespath "github.com/jmespath/go-jmespath"
 	"golang.org/x/oauth2"
 )
 
@@ -209,6 +209,7 @@ type UserInfoJson struct {
 	Username    string              `json:"username"`
 	Email       string              `json:"email"`
 	Upn         string              `json:"upn"`
+	Groups      []string            `json:"groups"`
 	Attributes  map[string][]string `json:"attributes"`
 }
 
@@ -241,13 +242,16 @@ func (s *SocialGenericOAuth) UserInfo(client *http.Client, token *oauth2.Token) 
 
 	role := s.extractRole(&data, rawUserInfoResponse.Body)
 
+	s.log.Debug("Getting role", role, rawUserInfoResponse.Body)
+
 	login := s.extractLogin(&data, email)
 
 	userInfo := &BasicUserInfo{
-		Name:  name,
-		Login: login,
-		Email: email,
-		Role:  role,
+		Name:   name,
+		Login:  login,
+		Email:  email,
+		Role:   role,
+		Groups: data.Groups,
 	}
 
 	if !s.IsTeamMember(client) {
