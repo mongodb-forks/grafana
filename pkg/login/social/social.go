@@ -1,6 +1,7 @@
 package social
 
 import (
+	"encoding/json"
 	"net/http"
 	"strings"
 
@@ -23,6 +24,13 @@ type BasicUserInfo struct {
 	Groups  []string
 }
 
+type GroupMappings struct {
+	Group        string `json:"group"`
+	OrgRole      string `json:"org_role"`
+	GrafanaAdmin bool   `json:"grafana_admin"`
+	OrgId        int64  `json:"org_id"`
+}
+
 type SocialConnector interface {
 	Type() int
 	UserInfo(client *http.Client, token *oauth2.Token) (*BasicUserInfo, error)
@@ -33,6 +41,7 @@ type SocialConnector interface {
 	Exchange(ctx context.Context, code string, authOptions ...oauth2.AuthCodeOption) (*oauth2.Token, error)
 	Client(ctx context.Context, t *oauth2.Token) *http.Client
 	TokenSource(ctx context.Context, t *oauth2.Token) oauth2.TokenSource
+	OrgToRoleMap() map[string][]SocialGroup
 }
 
 type SocialBase struct {
@@ -160,6 +169,25 @@ func NewOAuthService() {
 			}
 		}
 
+		groupMappingsStr := sec.Key("group_mappings").String()
+		var groupMappings []GroupMappings
+		//orgMap
+		var orgMap = make(map[string][]SocialGroup)
+
+		if err := json.Unmarshal([]byte(groupMappingsStr), &groupMappings); err != nil {
+			logger.Info("Unable to Unmarshal group_mappings", "groupMappingsStr", groupMappingsStr)
+		} else {
+			for _, value := range groupMappings {
+				logger.Debug("Org Map: ", "value", value)
+				s := SocialGroup{
+					Role:         value.OrgRole,
+					OrgId:        value.OrgId,
+					GrafanaAdmin: value.GrafanaAdmin,
+				}
+				orgMap[value.Group] = append(orgMap[value.Group], s)
+			}
+		}
+
 		// Generic - Uses the same scheme as Github.
 		if name == "generic_oauth" {
 			SocialMap["generic_oauth"] = &SocialGenericOAuth{
@@ -175,6 +203,7 @@ func NewOAuthService() {
 				roleAttributePath:    info.RoleAttributePath,
 				teamIds:              sec.Key("team_ids").Ints(","),
 				allowedOrganizations: util.SplitString(sec.Key("allowed_organizations").String()),
+				orgToGroupRoleMap:    orgMap,
 			}
 		}
 

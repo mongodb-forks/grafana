@@ -14,6 +14,12 @@ import (
 	"golang.org/x/oauth2"
 )
 
+type SocialGroup struct {
+	Role         string
+	OrgId        int64
+	GrafanaAdmin bool
+}
+
 type SocialGenericOAuth struct {
 	*SocialBase
 	allowedDomains       []string
@@ -23,6 +29,7 @@ type SocialGenericOAuth struct {
 	emailAttributeName   string
 	emailAttributePath   string
 	roleAttributePath    string
+	orgToGroupRoleMap    map[string][]SocialGroup
 	teamIds              []int
 }
 
@@ -57,6 +64,10 @@ func (s *SocialGenericOAuth) IsTeamMember(client *http.Client) bool {
 	}
 
 	return false
+}
+
+func (s *SocialGenericOAuth) OrgToRoleMap() map[string][]SocialGroup {
+	return s.orgToGroupRoleMap
 }
 
 func (s *SocialGenericOAuth) IsOrganizationMember(client *http.Client) bool {
@@ -218,7 +229,8 @@ func (s *SocialGenericOAuth) UserInfo(client *http.Client, token *oauth2.Token) 
 	var rawUserInfoResponse HttpGetResponse
 	var err error
 
-	if !s.extractToken(&data, token) {
+	if !s.extractToken(&data, token) || s.apiUrl != "" {
+		s.log.Debug("Fetching UserInfo ", s.apiUrl, token)
 		rawUserInfoResponse, err = HttpGet(client, s.apiUrl)
 		if err != nil {
 			return nil, fmt.Errorf("Error getting user info: %s", err)
@@ -243,7 +255,6 @@ func (s *SocialGenericOAuth) UserInfo(client *http.Client, token *oauth2.Token) 
 	role := s.extractRole(&data, rawUserInfoResponse.Body)
 
 	s.log.Debug("Getting role", role, rawUserInfoResponse.Body)
-
 	login := s.extractLogin(&data, email)
 
 	userInfo := &BasicUserInfo{
