@@ -1,0 +1,20 @@
+{
+  "author": "Grafana Labs",
+  "license": "Apache-2.0",
+  "name": "@grafana/eslint-config",
+  "version": "1.0.0-pre",
+  "description": "Grafana's ESLint config",
+  "keywords": [
+    "grafana",
+    "eslint",
+    "react",
+    "typescript"
+  ],
+  "repository": "github:grafana/grafana",
+  "scripts": {
+    "test": ""
+  },
+  "devDependencies": {
+    "eslint": "^6.7.2"
+  }
+}
