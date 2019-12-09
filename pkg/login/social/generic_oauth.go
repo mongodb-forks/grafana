@@ -14,12 +14,6 @@ import (
 	"golang.org/x/oauth2"
 )
 
-type SocialGroup struct {
-	Role         string
-	OrgId        int64
-	GrafanaAdmin bool
-}
-
 type SocialGenericOAuth struct {
 	*SocialBase
 	allowedDomains       []string

@@ -183,8 +183,6 @@ func (hs *HTTPServer) OAuthLogin(ctx *m.ReqContext) {
 		Groups:     userInfo.Groups,
 	}
 
-	oauthLogger.Debug("Ext User ", extUser)
-
 	if userInfo.Role != "" {
 		rt := m.RoleType(userInfo.Role)
 		if rt.IsValid() {
@@ -197,14 +195,13 @@ func (hs *HTTPServer) OAuthLogin(ctx *m.ReqContext) {
 	for _, group := range userInfo.Groups {
 		if orgs, ok := orgToRoleMap[group]; ok {
 			for _, org := range orgs {
-				oauthLogger.Debug("Mapping user to ", "org", org)
-				if org.OrgId == 0 {
-					org.OrgId = 1
+				if org.OrgID == 0 {
+					org.OrgID = 1
 				}
-				extUser.OrgRoles[org.OrgId] = m.RoleType(org.Role)
+				extUser.OrgRoles[org.OrgID] = m.RoleType(org.Role)
 
-				if org.GrafanaAdmin {
-					extUser.IsGrafanaAdmin = &org.GrafanaAdmin
+				if org.GrafanaAdmin != nil && *org.GrafanaAdmin == true {
+					extUser.IsGrafanaAdmin = org.GrafanaAdmin
 				}
 			}
 		}

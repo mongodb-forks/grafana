@@ -23,7 +23,7 @@ type OAuthInfo struct {
 	TlsClientCa                  string
 	TlsSkipVerify                bool
 	SendClientCredentialsViaPost bool
-	OrgMapping                   map[string]OAuthOrgInfo
+	ConfigFile                   string
 }
 
 type OAuther struct {

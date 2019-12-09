@@ -1,7 +1,6 @@
 package social
 
 import (
-	"encoding/json"
 	"net/http"
 	"strings"
 
@@ -10,6 +9,7 @@ import (
 	"golang.org/x/oauth2"
 
 	"github.com/grafana/grafana/pkg/infra/log"
+	"github.com/grafana/grafana/pkg/services/auth"
 	"github.com/grafana/grafana/pkg/setting"
 	"github.com/grafana/grafana/pkg/util"
 )
@@ -24,11 +24,10 @@ type BasicUserInfo struct {
 	Groups  []string
 }
 
-type GroupMappings struct {
-	Group        string `json:"group"`
-	OrgRole      string `json:"org_role"`
-	GrafanaAdmin bool   `json:"grafana_admin"`
-	OrgId        int64  `json:"org_id"`
+type SocialGroup struct {
+	Role         string
+	OrgID        int64
+	GrafanaAdmin *bool
 }
 
 type SocialConnector interface {
@@ -93,6 +92,7 @@ func NewOAuthService() {
 			TlsClientCa:                  sec.Key("tls_client_ca").String(),
 			TlsSkipVerify:                sec.Key("tls_skip_verify_insecure").MustBool(),
 			SendClientCredentialsViaPost: sec.Key("send_client_credentials_via_post").MustBool(),
+			ConfigFile:                   sec.Key("config_file").String(),
 		}
 
 		if !info.Enabled {
@@ -169,22 +169,25 @@ func NewOAuthService() {
 			}
 		}
 
-		groupMappingsStr := sec.Key("group_mappings").String()
-		var groupMappings []GroupMappings
-		//orgMap
 		var orgMap = make(map[string][]SocialGroup)
+		if info.ConfigFile != "" {
+			authConfig, err := auth.GetConfig(info.ConfigFile)
+			if err != nil {
+				logger.Info("Error", "err", err)
+			}
+			for _, auth := range authConfig.AuthMappings {
+				groups := auth.Groups
+				for _, group := range groups {
+					logger.Debug("Group: ", "group", group)
 
-		if err := json.Unmarshal([]byte(groupMappingsStr), &groupMappings); err != nil {
-			logger.Info("Unable to Unmarshal group_mappings", "groupMappingsStr", groupMappingsStr)
-		} else {
-			for _, value := range groupMappings {
-				logger.Debug("Org Map: ", "value", value)
-				s := SocialGroup{
-					Role:         value.OrgRole,
-					OrgId:        value.OrgId,
-					GrafanaAdmin: value.GrafanaAdmin,
+					s := SocialGroup{
+						Role:         group.OrgRole,
+						OrgID:        group.OrgID,
+						GrafanaAdmin: group.IsGrafanaAdmin,
+					}
+					orgMap[group.GroupDN] = append(orgMap[group.GroupDN], s)
+
 				}
-				orgMap[value.Group] = append(orgMap[value.Group], s)
 			}
 		}
 
