@@ -247,7 +247,6 @@ func (s *SocialGenericOAuth) UserInfo(client *http.Client, token *oauth2.Token) 
 
 	role := s.extractRole(&data, rawUserInfoResponse.Body)
 
-	s.log.Debug("Getting role", role, rawUserInfoResponse.Body)
 	login := s.extractLogin(&data, email)
 
 	userInfo := &BasicUserInfo{

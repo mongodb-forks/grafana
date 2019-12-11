@@ -234,10 +234,8 @@ func createOrganizationMapping(authConfig *auth.AuthConfig) map[string][]SocialG
 				GrafanaAdmin: group.IsGrafanaAdmin,
 			}
 			orgMap[group.GroupDN] = append(orgMap[group.GroupDN], s)
-
 		}
 	}
-
 	return orgMap
 }
 

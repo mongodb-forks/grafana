@@ -1,9 +1,5 @@
 package setting
 
-type OAuthOrgInfo struct {
-	Role  string
-	OrgId int64
-}
 
 type OAuthInfo struct {
 	ClientId, ClientSecret       string
