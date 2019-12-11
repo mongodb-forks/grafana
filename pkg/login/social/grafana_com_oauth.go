@@ -50,7 +50,8 @@ func (s *SocialGrafanaCom) IsOrganizationMember(organizations []OrgRecord) bool 
 }
 
 func (s *SocialGrafanaCom) OrgToRoleMap() map[string][]SocialGroup {
-	return nil
+	var emptyMap map[string][]SocialGroup
+	return emptyMap
 }
 
 func (s *SocialGrafanaCom) UserInfo(client *http.Client, token *oauth2.Token) (*BasicUserInfo, error) {

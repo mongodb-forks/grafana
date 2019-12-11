@@ -52,9 +52,9 @@ func (s *SocialGitlab) IsGroupMember(groups []string) bool {
 }
 
 func (s *SocialGitlab) OrgToRoleMap() map[string][]SocialGroup {
-  return nil
+	var emptyMap map[string][]SocialGroup
+	return emptyMap
 }
-
 
 func (s *SocialGitlab) GetGroups(client *http.Client) []string {
 	groups := make([]string, 0)

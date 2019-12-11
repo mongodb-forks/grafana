@@ -6,6 +6,11 @@ clone:
     pull: true
 
 pipeline:
+  test:
+    image: golang:1.13.1
+    commands:
+      - make test-go
+
   publish_quay:
     image: plugins/docker
     secrets: [docker_username, docker_password]

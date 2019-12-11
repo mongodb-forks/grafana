@@ -168,27 +168,14 @@ func NewOAuthService() {
 				allowSignup:    info.AllowSignup,
 			}
 		}
-
-		var orgMap = make(map[string][]SocialGroup)
+		var orgMap map[string][]SocialGroup
 		if info.ConfigFile != "" {
 			authConfig, err := auth.GetConfig(info.ConfigFile)
 			if err != nil {
 				logger.Info("Error", "err", err)
 			}
-			for _, auth := range authConfig.AuthMappings {
-				groups := auth.Groups
-				for _, group := range groups {
-					logger.Debug("Group: ", "group", group)
 
-					s := SocialGroup{
-						Role:         group.OrgRole,
-						OrgID:        group.OrgID,
-						GrafanaAdmin: group.IsGrafanaAdmin,
-					}
-					orgMap[group.GroupDN] = append(orgMap[group.GroupDN], s)
-
-				}
-			}
+			orgMap = createOrganizationMapping(authConfig)
 		}
 
 		// Generic - Uses the same scheme as Github.
@@ -233,6 +220,25 @@ func NewOAuthService() {
 			}
 		}
 	}
+}
+
+func createOrganizationMapping(authConfig *auth.AuthConfig) map[string][]SocialGroup {
+	var orgMap = make(map[string][]SocialGroup)
+	for _, auth := range authConfig.AuthMappings {
+		groups := auth.Groups
+		for _, group := range groups {
+
+			s := SocialGroup{
+				Role:         group.OrgRole,
+				OrgID:        group.OrgID,
+				GrafanaAdmin: group.IsGrafanaAdmin,
+			}
+			orgMap[group.GroupDN] = append(orgMap[group.GroupDN], s)
+
+		}
+	}
+
+	return orgMap
 }
 
 // GetOAuthProviders returns available oauth providers and if they're enabled or not

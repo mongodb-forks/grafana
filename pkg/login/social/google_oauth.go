@@ -31,7 +31,8 @@ func (s *SocialGoogle) IsSignupAllowed() bool {
 }
 
 func (s *SocialGoogle) OrgToRoleMap() map[string][]SocialGroup {
-	return nil
+	var emptyMap map[string][]SocialGroup
+	return emptyMap
 }
 
 func (s *SocialGoogle) UserInfo(client *http.Client, token *oauth2.Token) (*BasicUserInfo, error) {
