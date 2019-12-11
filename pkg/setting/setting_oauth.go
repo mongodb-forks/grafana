@@ -1,6 +1,5 @@
 package setting
 
-
 type OAuthInfo struct {
 	ClientId, ClientSecret       string
 	Scopes                       []string
