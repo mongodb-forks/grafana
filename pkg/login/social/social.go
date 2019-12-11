@@ -225,8 +225,7 @@ func NewOAuthService() {
 func createOrganizationMapping(authConfig *auth.AuthConfig) map[string][]SocialGroup {
 	var orgMap = make(map[string][]SocialGroup)
 	for _, auth := range authConfig.AuthMappings {
-		groups := auth.Groups
-		for _, group := range groups {
+		for _, group := range auth.Groups {
 
 			s := SocialGroup{
 				Role:         group.OrgRole,

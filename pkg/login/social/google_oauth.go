@@ -31,6 +31,7 @@ func (s *SocialGoogle) IsSignupAllowed() bool {
 }
 
 func (s *SocialGoogle) OrgToRoleMap() map[string][]SocialGroup {
+	// OrgToRoleMap not implemented in this provider
 	var emptyMap map[string][]SocialGroup
 	return emptyMap
 }
