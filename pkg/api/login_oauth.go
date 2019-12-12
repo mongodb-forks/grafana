@@ -195,7 +195,7 @@ func (hs *HTTPServer) OAuthLogin(ctx *m.ReqContext) {
 	for _, group := range userInfo.Groups {
 		if orgs, ok := orgToRoleMap[group]; ok {
 			for _, org := range orgs {
-        // OrgID is optional in the toml configuration.
+				// OrgID is optional in the toml configuration.
 				if org.OrgID == 0 {
 					org.OrgID = 1
 				}
