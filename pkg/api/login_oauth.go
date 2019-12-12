@@ -190,6 +190,24 @@ func (hs *HTTPServer) OAuthLogin(ctx *m.ReqContext) {
 		}
 	}
 
+	orgToRoleMap := connect.OrgToRoleMap()
+
+	for _, group := range userInfo.Groups {
+		if orgs, ok := orgToRoleMap[group]; ok {
+			for _, org := range orgs {
+				// OrgID is optional in the toml configuration.
+				if org.OrgID == 0 {
+					org.OrgID = 1
+				}
+				extUser.OrgRoles[org.OrgID] = m.RoleType(org.Role)
+
+				if org.GrafanaAdmin != nil && *org.GrafanaAdmin == true {
+					extUser.IsGrafanaAdmin = org.GrafanaAdmin
+				}
+			}
+		}
+	}
+
 	// add/update user in grafana
 	cmd := &m.UpsertUserCommand{
 		ReqContext:    ctx,

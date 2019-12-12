@@ -9,6 +9,7 @@ import (
 	"golang.org/x/oauth2"
 
 	"github.com/grafana/grafana/pkg/infra/log"
+	"github.com/grafana/grafana/pkg/services/auth"
 	"github.com/grafana/grafana/pkg/setting"
 	"github.com/grafana/grafana/pkg/util"
 )
@@ -23,6 +24,12 @@ type BasicUserInfo struct {
 	Groups  []string
 }
 
+type SocialGroup struct {
+	Role         string
+	OrgID        int64
+	GrafanaAdmin *bool
+}
+
 type SocialConnector interface {
 	Type() int
 	UserInfo(client *http.Client, token *oauth2.Token) (*BasicUserInfo, error)
@@ -33,6 +40,7 @@ type SocialConnector interface {
 	Exchange(ctx context.Context, code string, authOptions ...oauth2.AuthCodeOption) (*oauth2.Token, error)
 	Client(ctx context.Context, t *oauth2.Token) *http.Client
 	TokenSource(ctx context.Context, t *oauth2.Token) oauth2.TokenSource
+	OrgToRoleMap() map[string][]SocialGroup
 }
 
 type SocialBase struct {
@@ -84,6 +92,7 @@ func NewOAuthService() {
 			TlsClientCa:                  sec.Key("tls_client_ca").String(),
 			TlsSkipVerify:                sec.Key("tls_skip_verify_insecure").MustBool(),
 			SendClientCredentialsViaPost: sec.Key("send_client_credentials_via_post").MustBool(),
+			ConfigFile:                   sec.Key("config_file").String(),
 		}
 
 		if !info.Enabled {
@@ -114,6 +123,8 @@ func NewOAuthService() {
 		}
 
 		logger := log.New("oauth." + name)
+
+		logger.Debug("Scopes", config.Scopes)
 
 		// GitHub.
 		if name == "github" {
@@ -157,6 +168,15 @@ func NewOAuthService() {
 				allowSignup:    info.AllowSignup,
 			}
 		}
+		var orgMap map[string][]SocialGroup
+		if info.ConfigFile != "" {
+			authConfig, err := auth.GetConfig(info.ConfigFile)
+			if err != nil {
+				logger.Info("Error", "err", err)
+			}
+
+			orgMap = createOrganizationMapping(authConfig)
+		}
 
 		// Generic - Uses the same scheme as Github.
 		if name == "generic_oauth" {
@@ -173,6 +193,7 @@ func NewOAuthService() {
 				roleAttributePath:    info.RoleAttributePath,
 				teamIds:              sec.Key("team_ids").Ints(","),
 				allowedOrganizations: util.SplitString(sec.Key("allowed_organizations").String()),
+				orgToGroupRoleMap:    orgMap,
 			}
 		}
 
@@ -199,6 +220,22 @@ func NewOAuthService() {
 			}
 		}
 	}
+}
+
+func createOrganizationMapping(authConfig *auth.AuthConfig) map[string][]SocialGroup {
+	var orgMap = make(map[string][]SocialGroup)
+	for _, auth := range authConfig.AuthMappings {
+		for _, group := range auth.Groups {
+
+			s := SocialGroup{
+				Role:         group.OrgRole,
+				OrgID:        group.OrgID,
+				GrafanaAdmin: group.IsGrafanaAdmin,
+			}
+			orgMap[group.GroupDN] = append(orgMap[group.GroupDN], s)
+		}
+	}
+	return orgMap
 }
 
 // GetOAuthProviders returns available oauth providers and if they're enabled or not

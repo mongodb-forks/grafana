@@ -18,6 +18,7 @@ type OAuthInfo struct {
 	TlsClientCa                  string
 	TlsSkipVerify                bool
 	SendClientCredentialsViaPost bool
+	ConfigFile                   string
 }
 
 type OAuther struct {

@@ -30,6 +30,11 @@ func (s *SocialGoogle) IsSignupAllowed() bool {
 	return s.allowSignup
 }
 
+func (s *SocialGoogle) OrgToRoleMap() map[string][]SocialGroup {
+	// OrgToRoleMap not implemented in this provider
+  return nil
+}
+
 func (s *SocialGoogle) UserInfo(client *http.Client, token *oauth2.Token) (*BasicUserInfo, error) {
 	var data struct {
 		Id    string `json:"id"`

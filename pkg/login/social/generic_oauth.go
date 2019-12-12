@@ -10,7 +10,7 @@ import (
 	"regexp"
 
 	"github.com/grafana/grafana/pkg/models"
-	"github.com/jmespath/go-jmespath"
+	jmespath "github.com/jmespath/go-jmespath"
 	"golang.org/x/oauth2"
 )
 
@@ -23,6 +23,7 @@ type SocialGenericOAuth struct {
 	emailAttributeName   string
 	emailAttributePath   string
 	roleAttributePath    string
+	orgToGroupRoleMap    map[string][]SocialGroup
 	teamIds              []int
 }
 
@@ -57,6 +58,10 @@ func (s *SocialGenericOAuth) IsTeamMember(client *http.Client) bool {
 	}
 
 	return false
+}
+
+func (s *SocialGenericOAuth) OrgToRoleMap() map[string][]SocialGroup {
+	return s.orgToGroupRoleMap
 }
 
 func (s *SocialGenericOAuth) IsOrganizationMember(client *http.Client) bool {
@@ -209,6 +214,7 @@ type UserInfoJson struct {
 	Username    string              `json:"username"`
 	Email       string              `json:"email"`
 	Upn         string              `json:"upn"`
+	Groups      []string            `json:"groups"`
 	Attributes  map[string][]string `json:"attributes"`
 }
 
@@ -217,7 +223,7 @@ func (s *SocialGenericOAuth) UserInfo(client *http.Client, token *oauth2.Token) 
 	var rawUserInfoResponse HttpGetResponse
 	var err error
 
-	if !s.extractToken(&data, token) {
+	if !s.extractToken(&data, token) || s.apiUrl != "" {
 		rawUserInfoResponse, err = HttpGet(client, s.apiUrl)
 		if err != nil {
 			return nil, fmt.Errorf("Error getting user info: %s", err)
@@ -244,10 +250,11 @@ func (s *SocialGenericOAuth) UserInfo(client *http.Client, token *oauth2.Token) 
 	login := s.extractLogin(&data, email)
 
 	userInfo := &BasicUserInfo{
-		Name:  name,
-		Login: login,
-		Email: email,
-		Role:  role,
+		Name:   name,
+		Login:  login,
+		Email:  email,
+		Role:   role,
+		Groups: data.Groups,
 	}
 
 	if !s.IsTeamMember(client) {

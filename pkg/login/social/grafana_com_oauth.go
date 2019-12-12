@@ -49,6 +49,11 @@ func (s *SocialGrafanaCom) IsOrganizationMember(organizations []OrgRecord) bool 
 	return false
 }
 
+func (s *SocialGrafanaCom) OrgToRoleMap() map[string][]SocialGroup {
+	// OrgToRoleMap not implemented in this provider
+	return nil
+}
+
 func (s *SocialGrafanaCom) UserInfo(client *http.Client, token *oauth2.Token) (*BasicUserInfo, error) {
 	var data struct {
 		Id    int         `json:"id"`

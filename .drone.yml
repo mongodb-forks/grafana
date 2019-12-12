@@ -1,0 +1,33 @@
+---
+clone:
+  git:
+    # https://discourse.drone.io/t/planned-change-to-git-clone-logic/1165
+    image: plugins/git:next
+    pull: true
+
+pipeline:
+  test:
+    image: golang:1.13.1
+    commands:
+      - make test-go
+
+  publish_quay:
+    image: plugins/docker
+    secrets: [docker_username, docker_password]
+    registry: quay.io
+    repo: quay.io/mongodb/grafana
+    tags:
+      - git-${DRONE_COMMIT_SHA:0:7}
+    when:
+      event: push
+
+  publish_quay_release:
+    image: plugins/docker
+    secrets: [docker_username, docker_password]
+    registry: quay.io
+    repo: quay.io/mongodb/grafana
+    tags:
+      - git-${DRONE_COMMIT_SHA:0:7}
+      - ${DRONE_TAG}
+    when:
+      event: tag
