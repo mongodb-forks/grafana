@@ -49,8 +49,7 @@ func (s *SocialGithub) IsSignupAllowed() bool {
 
 func (s *SocialGithub) OrgToRoleMap() map[string][]SocialGroup {
   // OrgToRoleMap not implemented in this provider
-	var emptyMap map[string][]SocialGroup
-	return emptyMap
+  return nil
 }
 
 func (s *SocialGithub) IsTeamMember(client *http.Client) bool {

@@ -51,8 +51,7 @@ func (s *SocialGrafanaCom) IsOrganizationMember(organizations []OrgRecord) bool 
 
 func (s *SocialGrafanaCom) OrgToRoleMap() map[string][]SocialGroup {
 	// OrgToRoleMap not implemented in this provider
-	var emptyMap map[string][]SocialGroup
-	return emptyMap
+	return nil
 }
 
 func (s *SocialGrafanaCom) UserInfo(client *http.Client, token *oauth2.Token) (*BasicUserInfo, error) {
