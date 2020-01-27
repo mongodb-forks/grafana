@@ -190,6 +190,13 @@ func (hs *HTTPServer) OAuthLogin(ctx *m.ReqContext) {
 		}
 	}
 
+	// role hierarchy
+	roleHierarchy := map[m.RoleType]int{
+		m.RoleType("Viewer"): 0,
+		m.RoleType("Editor"): 1,
+		m.RoleType("Admin"):  2,
+	}
+
 	orgToRoleMap := connect.OrgToRoleMap()
 
 	for _, group := range userInfo.Groups {
@@ -200,11 +207,12 @@ func (hs *HTTPServer) OAuthLogin(ctx *m.ReqContext) {
 					org.OrgID = 1
 				}
 
-        // Keep the higher Roles assigned to this User/Org combination.
-				if extUser.OrgRoles[org.OrgID] != "" && org.Role == "Viewer" {
+				// If the incoming role is less than ( less privilage ) than the currently assigned role ( more privilage ), skip this mapping.
+				if extUser.OrgRoles[org.OrgID] != "" && roleHierarchy[m.RoleType(org.Role)] < roleHierarchy[extUser.OrgRoles[org.OrgID]] {
 					continue
 				}
 
+				oauthLogger.Debug("Group Mapping", "group", group, "OrgID", org.OrgID, "Role", org.Role)
 				extUser.OrgRoles[org.OrgID] = m.RoleType(org.Role)
 
 				if org.GrafanaAdmin != nil && *org.GrafanaAdmin == true {
