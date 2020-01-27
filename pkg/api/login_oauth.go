@@ -199,6 +199,12 @@ func (hs *HTTPServer) OAuthLogin(ctx *m.ReqContext) {
 				if org.OrgID == 0 {
 					org.OrgID = 1
 				}
+
+        // Keep the higher Roles assigned to this User/Org combination.
+				if extUser.OrgRoles[org.OrgID] != "" && org.Role == "Viewer" {
+					continue
+				}
+
 				extUser.OrgRoles[org.OrgID] = m.RoleType(org.Role)
 
 				if org.GrafanaAdmin != nil && *org.GrafanaAdmin == true {
