@@ -207,7 +207,7 @@ func (hs *HTTPServer) OAuthLogin(ctx *m.ReqContext) {
 					org.OrgID = 1
 				}
 
-				// If the incoming role is less than ( less privilage ) than the currently assigned role ( more privilage ), skip this mapping.
+				// If the incoming role is less than ( less privilege ) than the currently assigned role ( more privilege ), skip this mapping.
 				if extUser.OrgRoles[org.OrgID] != "" && roleHierarchy[m.RoleType(org.Role)] < roleHierarchy[extUser.OrgRoles[org.OrgID]] {
 					continue
 				}
