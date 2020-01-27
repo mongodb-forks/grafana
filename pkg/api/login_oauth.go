@@ -190,13 +190,6 @@ func (hs *HTTPServer) OAuthLogin(ctx *m.ReqContext) {
 		}
 	}
 
-	// role hierarchy
-	roleHierarchy := map[m.RoleType]int{
-		m.RoleType("Viewer"): 0,
-		m.RoleType("Editor"): 1,
-		m.RoleType("Admin"):  2,
-	}
-
 	orgToRoleMap := connect.OrgToRoleMap()
 
 	for _, group := range userInfo.Groups {
@@ -207,8 +200,7 @@ func (hs *HTTPServer) OAuthLogin(ctx *m.ReqContext) {
 					org.OrgID = 1
 				}
 
-				// If the incoming role is less than ( less privilege ) than the currently assigned role ( more privilege ), skip this mapping.
-				if extUser.OrgRoles[org.OrgID] != "" && roleHierarchy[m.RoleType(org.Role)] < roleHierarchy[extUser.OrgRoles[org.OrgID]] {
+				if !isRoleAssignable(extUser.OrgRoles[org.OrgID], m.RoleType(org.Role)) {
 					continue
 				}
 
@@ -255,6 +247,22 @@ func (hs *HTTPServer) OAuthLogin(ctx *m.ReqContext) {
 	}
 
 	ctx.Redirect(setting.AppSubUrl + "/")
+}
+
+func isRoleAssignable(currentRole m.RoleType, incomingRole m.RoleType) bool {
+	// role hierarchy
+	roleHierarchy := map[m.RoleType]int{
+		m.RoleType("Viewer"): 0,
+		m.RoleType("Editor"): 1,
+		m.RoleType("Admin"):  2,
+	}
+
+	// If the incoming role is less than ( less privilage ) than the currently assigned role ( more privilage ), skip this mapping.
+	if currentRole != "" && roleHierarchy[m.RoleType(incomingRole)] < roleHierarchy[currentRole] {
+		return false
+	}
+
+	return true
 }
 
 func (hs *HTTPServer) deleteCookie(w http.ResponseWriter, name string, sameSite http.SameSite) {
