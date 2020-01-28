@@ -8,18 +8,17 @@ import (
 )
 
 func TestIsRoleAssignable(t *testing.T) {
-
-	viewer := m.RoleType("Viewer")
-	editor := m.RoleType("Editor")
-	admin := m.RoleType("Admin")
-
 	// table test to  validate isRoleAssignable(currentRole, incomingRole)
-	assert.True(t, isRoleAssignable("", viewer))
-	assert.True(t, isRoleAssignable(viewer, editor))
-	assert.True(t, isRoleAssignable(viewer, admin))
-	assert.True(t, isRoleAssignable(editor, admin))
-	assert.False(t, isRoleAssignable(admin, editor))
-	assert.False(t, isRoleAssignable(admin, viewer))
-	assert.False(t, isRoleAssignable(editor, viewer))
-	assert.True(t, isRoleAssignable(viewer, viewer))
+	assert.True(t, isRoleAssignable("", m.ROLE_VIEWER))
+	assert.True(t, isRoleAssignable(m.ROLE_VIEWER, m.ROLE_EDITOR))
+	assert.True(t, isRoleAssignable(m.ROLE_VIEWER, m.ROLE_ADMIN))
+	assert.True(t, isRoleAssignable(m.ROLE_EDITOR, m.ROLE_ADMIN))
+	assert.False(t, isRoleAssignable(m.ROLE_ADMIN, m.ROLE_EDITOR))
+	assert.False(t, isRoleAssignable(m.ROLE_ADMIN, m.ROLE_VIEWER))
+	assert.False(t, isRoleAssignable(m.ROLE_EDITOR, m.ROLE_VIEWER))
+	assert.True(t, isRoleAssignable(m.ROLE_VIEWER, m.ROLE_VIEWER))
+
+	roles := map[int64]m.RoleType{}
+	assert.True(t, isRoleAssignable(roles[0], m.ROLE_VIEWER))
+
 }

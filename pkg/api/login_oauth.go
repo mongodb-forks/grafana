@@ -252,12 +252,12 @@ func (hs *HTTPServer) OAuthLogin(ctx *m.ReqContext) {
 func isRoleAssignable(currentRole m.RoleType, incomingRole m.RoleType) bool {
 	// role hierarchy
 	roleHierarchy := map[m.RoleType]int{
-		m.RoleType("Viewer"): 0,
-		m.RoleType("Editor"): 1,
-		m.RoleType("Admin"):  2,
+		m.ROLE_VIEWER: 0,
+		m.ROLE_EDITOR: 1,
+		m.ROLE_ADMIN:  2,
 	}
 
-	// If the incoming role is less than ( less privilage ) than the currently assigned role ( more privilage ), skip this mapping.
+	// If the incoming role is less than ( less privilege ) than the currently assigned role ( more privilege ), skip this mapping.
 	if currentRole != "" && roleHierarchy[m.RoleType(incomingRole)] < roleHierarchy[currentRole] {
 		return false
 	}
