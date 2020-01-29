@@ -199,6 +199,12 @@ func (hs *HTTPServer) OAuthLogin(ctx *m.ReqContext) {
 				if org.OrgID == 0 {
 					org.OrgID = 1
 				}
+
+				if !isRoleAssignable(extUser.OrgRoles[org.OrgID], m.RoleType(org.Role)) {
+					continue
+				}
+
+				oauthLogger.Debug("Group Mapping", "group", group, "OrgID", org.OrgID, "Role", org.Role)
 				extUser.OrgRoles[org.OrgID] = m.RoleType(org.Role)
 
 				if org.GrafanaAdmin != nil && *org.GrafanaAdmin == true {
@@ -241,6 +247,22 @@ func (hs *HTTPServer) OAuthLogin(ctx *m.ReqContext) {
 	}
 
 	ctx.Redirect(setting.AppSubUrl + "/")
+}
+
+func isRoleAssignable(currentRole m.RoleType, incomingRole m.RoleType) bool {
+	// role hierarchy
+	roleHierarchy := map[m.RoleType]int{
+		m.ROLE_VIEWER: 0,
+		m.ROLE_EDITOR: 1,
+		m.ROLE_ADMIN:  2,
+	}
+
+	// If the incoming role is less than ( less privilege ) than the currently assigned role ( more privilege ), skip this mapping.
+	if currentRole != "" && roleHierarchy[m.RoleType(incomingRole)] < roleHierarchy[currentRole] {
+		return false
+	}
+
+	return true
 }
 
 func (hs *HTTPServer) deleteCookie(w http.ResponseWriter, name string, sameSite http.SameSite) {
