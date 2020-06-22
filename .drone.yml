@@ -1,0 +1,45 @@
+---
+kind: pipeline
+type: kubernetes
+name: default
+
+
+steps:
+- name: test
+  image: golang:1.14.1
+  commands:
+  - make test-go
+
+- name: publish_quay
+  image: plugins/docker
+  settings:
+    registry: quay.io
+    repo: quay.io/mongodb/grafana
+    tags:
+    - git-${DRONE_COMMIT_SHA:0:7}
+  environment:
+    DOCKER_PASSWORD:
+      from_secret: docker_password
+    DOCKER_USERNAME:
+      from_secret: docker_username
+  when:
+    event:
+    - push
+
+- name: publish_quay_release
+  image: plugins/docker
+  settings:
+    registry: quay.io
+    repo: quay.io/mongodb/grafana
+    tags:
+    - git-${DRONE_COMMIT_SHA:0:7}
+    - ${DRONE_TAG}
+  environment:
+    DOCKER_PASSWORD:
+      from_secret: docker_password
+    DOCKER_USERNAME:
+      from_secret: docker_username
+  when:
+    event:
+    - tag
+
